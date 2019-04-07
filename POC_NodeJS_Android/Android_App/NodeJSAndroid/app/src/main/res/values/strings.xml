@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">NodeJSAndroid</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="server_host">SERVER_HOST</string>
+    <string name="server_port">SERVER_PORT</string>
+</resources>
