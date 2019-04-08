@@ -54,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean mIsConnecting = false;
     private boolean misConnected = false;
     private Endpoint mConnection;
+    private TextView tvResponse;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,6 +96,8 @@ public class MainActivity extends AppCompatActivity {
                 sendPayload();
             }
         });
+
+        tvResponse = findViewById(R.id.response);
     }
 
     @Override
@@ -130,10 +133,12 @@ public class MainActivity extends AppCompatActivity {
         if (mIsAdvertising) {
             mIsAdvertising = false;
             mConnectionsClient.stopAdvertising();
+            tvResponse.setText("stopped advertising");
         }
         if (misDiscovering) {
             misDiscovering = false;
             mConnectionsClient.stopDiscovery();
+            tvResponse.setText("stopped discovery");
         }
     }
 
@@ -155,6 +160,7 @@ public class MainActivity extends AppCompatActivity {
                             @Override
                             public void onSuccess(Void unusedResult) {
                                 Log.d(logTag, "Now advertising endpoint");
+                                tvResponse.setText("started advertising");
                             }
                         })
                 .addOnFailureListener(
@@ -163,6 +169,7 @@ public class MainActivity extends AppCompatActivity {
                             public void onFailure(@NonNull Exception e) {
                                 mIsAdvertising = false;
                                 Log.d(logTag,"startAdvertising() failed.", e);
+                                tvResponse.setText("advertising failed");
                             }
                         });
     }
@@ -172,8 +179,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onPayloadReceived(String endpointId, Payload payload) {
                     Log.d(logTag, String.format("onPayloadReceived(endpointId=%s, payload=%s)", endpointId, payload));
-                    TextView tv = findViewById(R.id.response);
-                    tv.setText(new String(payload.asBytes(), StandardCharsets.UTF_8));
+                    tvResponse.setText(new String(payload.asBytes(), StandardCharsets.UTF_8));
                 }
 
                 @Override
@@ -192,6 +198,7 @@ public class MainActivity extends AppCompatActivity {
                             String.format(
                                     "onConnectionInitiated(endpointId=%s, endpointName=%s)",
                                     endpointId, connectionInfo.getEndpointName()));
+                    tvResponse.setText("connecting");
                     mConnection = new Endpoint(endpointId, connectionInfo.getEndpointName());
                     mConnectionsClient
                             .acceptConnection(mConnection.getId(), mPayloadCallback)
@@ -200,6 +207,7 @@ public class MainActivity extends AppCompatActivity {
                                         @Override
                                         public void onFailure(@NonNull Exception e) {
                                             Log.d(logTag, "acceptConnection() failed.", e);
+                                            tvResponse.setText("connection failed");
                                         }
                                     });
                 }
@@ -213,9 +221,11 @@ public class MainActivity extends AppCompatActivity {
                                 String.format(
                                         "Connection failed. Received status %s.",
                                         result.toString()));
+                        tvResponse.setText("connection failed");
                         return;
                     }
                     Log.d(logTag, String.format("connectedToEndpoint(endpoint=%s)", endpointId));
+                    tvResponse.setText("connected");
                     misConnected = true;
                 }
 
@@ -227,6 +237,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                     misConnected = false;
                     Log.d(logTag, String.format("disconnectedFromEndpoint(endpoint=%s)", endpointId));
+                    tvResponse.setText("disconnected");
                 }
             };
 
@@ -235,6 +246,9 @@ public class MainActivity extends AppCompatActivity {
         DiscoveryOptions.Builder discoveryOptions = new DiscoveryOptions.Builder();
         discoveryOptions.setStrategy(Strategy.P2P_STAR);
         misDiscovering = true;
+
+        TextView tv = findViewById(R.id.name);
+        localEndpointName = tv.getText().toString();
 
         mConnectionsClient
                 .startDiscovery(
@@ -246,7 +260,7 @@ public class MainActivity extends AppCompatActivity {
                                         String.format(
                                                 "onEndpointFound(endpointId=%s, serviceId=%s, endpointName=%s)",
                                                 endpointId, info.getServiceId(), info.getEndpointName()));
-
+                                tvResponse.setText("endpoint found");
                                 if (info.getServiceId().equals(appTag)) {
                                     Endpoint endpoint = new Endpoint(endpointId, info.getEndpointName());
                                     connectToEndpoint(endpoint);
@@ -256,6 +270,7 @@ public class MainActivity extends AppCompatActivity {
                             @Override
                             public void onEndpointLost(String endpointId) {
                                 Log.d(logTag, String.format("onEndpointLost(endpointId=%s)", endpointId));
+                                tvResponse.setText("endpoint lost");
                             }
                         },
                         discoveryOptions.build())
@@ -264,6 +279,7 @@ public class MainActivity extends AppCompatActivity {
                             @Override
                             public void onSuccess(Void unusedResult) {
                                 Log.d(logTag, "started discovery");
+                                tvResponse.setText("started discovering");
                             }
                         })
                 .addOnFailureListener(
@@ -272,6 +288,7 @@ public class MainActivity extends AppCompatActivity {
                             public void onFailure(@NonNull Exception e) {
                                 Log.d(logTag,"startDiscovering() failed.", e);
                                 mIsAdvertising = false;
+                                tvResponse.setText("discovering failed");
                             }
                         });
     }
@@ -287,6 +304,7 @@ public class MainActivity extends AppCompatActivity {
                             @Override
                             public void onFailure(@NonNull Exception e) {
                                 Log.d(logTag,"requestConnection() failed.", e);
+                                tvResponse.setText("connecting failed");
                                 mIsConnecting = false;
                             }
                         });
@@ -298,7 +316,7 @@ public class MainActivity extends AppCompatActivity {
         Payload payload = Payload.fromBytes(str.getBytes());
         if (!misConnected) {
             TextView tv2 = findViewById(R.id.response);
-            tv2.setText("not connected");
+            tv2.setText("disconnected");
             return;
         }
         mConnectionsClient
@@ -308,6 +326,7 @@ public class MainActivity extends AppCompatActivity {
                             @Override
                             public void onFailure(@NonNull Exception e) {
                                 Log.d(logTag, "sendPayload() failed.", e);
+                                tvResponse.setText("sending failed");
                             }
                         });
     }
