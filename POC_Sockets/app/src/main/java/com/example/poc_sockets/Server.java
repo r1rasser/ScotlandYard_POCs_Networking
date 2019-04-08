@@ -65,7 +65,9 @@ public class Server extends Thread{
     }
 
     public void send(String str) {
-        client.send(str);
+        if (client != null) {
+            client.send(str);
+        }
     }
 
     private class SocketServerThread extends Thread {
