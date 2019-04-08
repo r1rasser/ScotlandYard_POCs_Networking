@@ -64,13 +64,15 @@ public class Client extends Thread{
         }
 
         public void run() {
-            try {
-                DataOutputStream writer = new DataOutputStream(socket.getOutputStream());
-                writer.writeBytes(str + '\n');
-                writer.flush();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+            if (socket != null) {
+                try {
+                    DataOutputStream writer = new DataOutputStream(socket.getOutputStream());
+                    writer.writeBytes(str + '\n');
+                    writer.flush();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             }
         }
     }

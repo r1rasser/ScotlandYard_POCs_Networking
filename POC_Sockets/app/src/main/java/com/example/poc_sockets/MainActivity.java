@@ -1,5 +1,6 @@
 package com.example.poc_sockets;
 
+import android.app.Activity;
 import android.content.Context;
 import android.net.nsd.NsdManager;
 import android.net.nsd.NsdServiceInfo;
@@ -73,13 +74,23 @@ public class MainActivity extends AppCompatActivity {
         if (isAdvertising) {
             isAdvertising = false;
             nsdManager.unregisterService(registrationListener);
-            tvResponse.setText("stopped advertising");
+            setText("stopped advertising");
         }
         if (isDiscovering) {
             isDiscovering = false;
             nsdManager.stopServiceDiscovery(discoveryListener);
-            tvResponse.setText("stopped discovering");
+            setText("stopped discovering");
         }
+    }
+
+    private void setText(final String str) {
+        this.runOnUiThread(new Runnable() {
+
+            @Override
+            public void run() {
+                tvResponse.setText(str);
+            }
+        });
     }
 
     NsdManager.RegistrationListener registrationListener = new NsdManager.RegistrationListener() {
@@ -90,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
             // resolve a conflict, so update the name you initially requested
             // with the name Android actually used.
             Log.d(logTag, "service registered");
-            tvResponse.setText("started advertising");
+            setText("started advertising");
             serviceName = NsdServiceInfo.getServiceName();
         }
 
@@ -98,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
         public void onRegistrationFailed(NsdServiceInfo serviceInfo, int errorCode) {
             // Registration failed! Put debugging code here to determine why.
             Log.d(logTag, "registration failed. errorcode = "+errorCode);
-            tvResponse.setText("advertising failed");
+            setText("advertising failed");
             isAdvertising = false;
         }
 
@@ -107,14 +118,14 @@ public class MainActivity extends AppCompatActivity {
             // Service has been unregistered. This only happens when you call
             // NsdManager.unregisterService() and pass in this listener.
             isAdvertising = false;
-            tvResponse.setText("stopped advertising");
+            setText("stopped advertising");
         }
 
         @Override
         public void onUnregistrationFailed(NsdServiceInfo serviceInfo, int errorCode) {
             // Unregistration failed. Put debugging code here to determine why.
             Log.d(logTag, "unregistration failed. errorcode = "+errorCode);
-            tvResponse.setText("stoping advertising failed");
+            setText("stoping advertising failed");
         }
     };
 
@@ -168,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onDiscoveryStarted(String regType) {
             Log.d(logTag, "Service discovery started");
-            tvResponse.setText("started discovering");
+            setText("started discovering");
         }
 
         @Override
@@ -186,7 +197,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(logTag, "Same machine: " + serviceName);
             } else if (service.getServiceName().contains(serviceName)){
                 nsdManager.resolveService(service, resolveListener);
-                tvResponse.setText("connecting");
+                setText("connecting");
             }
         }
 
@@ -195,21 +206,21 @@ public class MainActivity extends AppCompatActivity {
             // When the network service is no longer available.
             // Internal bookkeeping code goes here.
             Log.e(logTag, "service lost: " + service);
-            tvResponse.setText("disconnected");
+            setText("disconnected");
             isDiscovering = false;
         }
 
         @Override
         public void onDiscoveryStopped(String serviceType) {
             Log.i(logTag, "Discovery stopped: " + serviceType);
-            tvResponse.setText("stopped discovering");
+            setText("stopped discovering");
             isDiscovering = false;
         }
 
         @Override
         public void onStartDiscoveryFailed(String serviceType, int errorCode) {
             Log.e(logTag, "Discovery failed: Error code:" + errorCode);
-            tvResponse.setText("discovering failed");
+            setText("discovering failed");
             nsdManager.stopServiceDiscovery(this);
             isDiscovering = false;
         }
@@ -217,7 +228,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onStopDiscoveryFailed(String serviceType, int errorCode) {
             Log.e(logTag, "Discovery failed: Error code:" + errorCode);
-            tvResponse.setText("stoping discovering failed");
+            setText("stoping discovering failed");
             nsdManager.stopServiceDiscovery(this);
             isDiscovering = false;
         }
@@ -229,13 +240,13 @@ public class MainActivity extends AppCompatActivity {
             public void onResolveFailed(NsdServiceInfo serviceInfo, int errorCode) {
                 // Called when the resolve fails. Use the error code to debug.
                 Log.e(logTag, "Resolve failed: " + errorCode);
-                tvResponse.setText("connecting failed");
+                setText("connecting failed");
             }
 
             @Override
             public void onServiceResolved(NsdServiceInfo serviceInfo) {
                 Log.e(logTag, "Resolve Succeeded. " + serviceInfo);
-                tvResponse.setText("connected");
+                setText("connected");
 
                 if (serviceInfo.getServiceName().equals(serviceName)) {
                     Log.d(logTag, "Same IP.");
